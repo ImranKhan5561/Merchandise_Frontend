@@ -63,7 +63,7 @@ export default function SortDropdown() {
               <button
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full text-left px-5 py-3 rounded-2xl text-[11px] font-bold transition-all flex items-center justify-between ${
+                className={`w-full text-left px-5 py-3 rounded-2xl text-[11px] md:text-[15px] font-bold transition-all flex items-center justify-between ${
                   currentSort === opt.value 
                     ? 'bg-purple-50 text-[#8B7BB4]' 
                     : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A142E]'

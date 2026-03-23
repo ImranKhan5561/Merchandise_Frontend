@@ -11,6 +11,7 @@ export interface ProductCard {
   on_sale: boolean;
   cover_image: string | null;
   category: string | null;
+  tags: string[];
 }
 
 export interface OptionValue {
@@ -47,6 +48,8 @@ export interface ProductDetail {
   discount: number;
   on_sale: boolean;
   featured: boolean;
+  free_shipping: boolean;
+  tags: string[];
   category: { id: number; name: string } | null;
   images: string[];
   option_types: OptionType[];
@@ -66,8 +69,28 @@ export interface ProductListResponse {
   meta: { total: number; page: number; per_page: number; total_pages: number };
 }
 
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 } });
+async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  const res = await fetch(`${BASE}${path}`, { 
+    ...options,
+    headers,
+    next: { revalidate: 60 } 
+  });
+
+  if (res.status === 401) {
+    // Handle unauthorized (optional: redirect to login)
+    if (typeof window !== 'undefined') {
+      // window.location.href = '/login'; 
+    }
+  }
+
   if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
   return res.json();
 }
@@ -84,4 +107,73 @@ export const api = {
   categories: {
     list: (): Promise<Category[]> => apiFetch('/api/categories'),
   },
+  cart: {
+    get: (): Promise<any> => apiFetch('/api/cart'),
+    addItem: (variantId: number, quantity: number): Promise<any> => 
+      apiFetch('/api/cart/add_item', {
+        method: 'POST',
+        body: JSON.stringify({ variant_id: variantId, quantity }),
+      }),
+    removeItem: (variantId: number): Promise<any> =>
+      apiFetch('/api/cart/remove_item', {
+        method: 'DELETE',
+        body: JSON.stringify({ variant_id: variantId }),
+      }),
+  },
+  auth: {
+    login: async (email: string, password: string): Promise<any> => {
+      const res = await fetch(`${BASE}/users/sign_in`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ user: { email, password } }),
+      });
+      const data = await res.json();
+      if (res.ok && data.data?.token) {
+        localStorage.setItem('token', data.data.token);
+      }
+      return { ok: res.ok, data };
+    },
+    register: async (name: string, email: string, password: string): Promise<any> => {
+      const res = await fetch(`${BASE}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ user: { name, email, password, password_confirmation: password } }),
+      });
+      const data = await res.json();
+      if (res.ok && data.data?.token) {
+        localStorage.setItem('token', data.data.token);
+      }
+      return { ok: res.ok, data };
+    },
+    logout: async (): Promise<any> => {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BASE}/users/sign_out`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      localStorage.removeItem('token');
+      return { ok: res.ok };
+    },
+    verifyOtp: async (email: string, otp_code: string): Promise<any> => {
+      const res = await fetch(`${BASE}/api/auth/verify_otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, otp_code }),
+      });
+      const data = await res.json();
+      return { ok: res.ok, data };
+    }
+  }
 };

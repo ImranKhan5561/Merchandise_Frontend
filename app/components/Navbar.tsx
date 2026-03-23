@@ -1,6 +1,15 @@
+'use client';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
   return (
     <nav className="h-24 flex items-center bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-gray-50/50">
       <div className="container-custom flex items-center justify-between w-full gap-8">
@@ -46,15 +55,23 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
               <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#8B7BB4] text-[8px] font-black text-white flex items-center justify-center border-2 border-white">2</span>
            </Link>
 
-           <Link href="/profile" className="hidden sm:flex p-2 flex-shrink-0 group hover:scale-105 transition-all">
-              <div className="w-10 h-10 rounded-full border-2 border-gray-100 p-0.5 overflow-hidden group-hover:border-[#8B7BB4] transition-all">
-                 <div className="w-full h-full rounded-full bg-purple-50 flex items-center justify-center text-[#8B7BB4]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-5 h-5">
-                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                 </div>
-              </div>
-           </Link>
+           {isLoggedIn ? (
+             <Link href="/profile" className="hidden sm:flex p-2 flex-shrink-0 group hover:scale-105 transition-all">
+                <div className="w-10 h-10 rounded-full border-2 border-gray-100 p-0.5 overflow-hidden group-hover:border-[#8B7BB4] transition-all">
+                   <div className="w-full h-full rounded-full bg-purple-50 flex items-center justify-center text-[#8B7BB4]">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-5 h-5">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                   </div>
+                </div>
+             </Link>
+           ) : (
+             <div className="hidden sm:flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#6B6580]">
+                <Link href="/login" className="hover:text-[#8B7BB4] transition-colors">Login</Link>
+                <span className="opacity-20">|</span>
+                <Link href="/register" className="hover:text-[#8B7BB4] transition-colors">Register</Link>
+             </div>
+           )}
         </div>
 
       </div>

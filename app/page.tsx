@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import ProductCard from './components/ProductCard';
 import SortDropdown from './components/SortDropdown';
+import PopularSection from './components/PopularSection';
 import Link from 'next/link';
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
@@ -27,7 +28,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* ── HERO HEADER & CATEGORIES ── */}
         <section className="pt-8 md:pt-12 pb-10">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl md:text-6xl font-semibold tracking-tight text-[#1A142E]">
+            <h1 className="text-2xl md:text-5xl font-semibold tracking-tight text-[#1A142E]">
               Discover
             </h1>
             <SortDropdown />
@@ -36,7 +37,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             Discover Products of your <span className="text-[#8B7BB4]">interest</span> from our curated collection.
           </p>
           
-          <div className="flex gap-2 md:gap-12 overflow-x-auto scrollbar-none pb-6">
+          <div className="flex gap-2 md:gap-12 overflow-x-auto scrollbar-none">
             {allCats.map((cat, i) => (
               <Link key={cat.id} href={`/browse?category_id=${cat.id}`} className="group flex flex-col items-center gap-2 md:gap-6 flex-shrink-0">
                 <div className="w-18 md:w-32 h-18 md:h-32 rounded-full overflow-hidden group-hover:border-[#8B7BB4] transition-all p-1 bg-white shadow-soft group-hover:shadow-2xl">
@@ -63,26 +64,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         </section>
 
-        {/* ── POPULAR NOW ── */}
-        <section className="pt-12 pb-20 ">
-           <div className="flex items-center justify-between mb-16">
-              <div>
-                 <h2 className="text-4xl font-semibold text-[#1A142E] mb-3 tracking-tight">Popular Now</h2>
-                 <p className="text-base font-medium text-gray-400">Handpicked pieces from global artisans</p>
-              </div>
-              <div className="flex items-center gap-6">
-                 <Link href="/browse" className="text-[10px] font-black text-gray-400 hover:text-[#8B7BB4] transition-all uppercase tracking-[0.3em] pb-1 border-b border-transparent hover:border-[#8B7BB4]">
-                    View Collection
-                 </Link>
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-20">
-              {featuredProducts.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} />
-              ))}
-           </div>
-        </section>
+        {/* ── POPULAR NOW (Dynamic Tabs) ── */}
+        <PopularSection 
+          initialProducts={featuredProducts} 
+          categories={allCats} 
+        />
 
         {/* ── FULL-WIDTH ARTISAN HERO ── */}
         <section className="pb-32">
