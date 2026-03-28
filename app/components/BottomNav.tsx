@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 const strips = [
   { label: 'Discover',   href: '/',       icon: HomeIcon },
   { label: 'Browse',     href: '/browse', icon: GridIcon },
-  { label: 'Saved',      href: '/saved',  icon: HeartIcon },
+  { label: 'Wishlist',   href: '/wishlist', icon: HeartIcon },
   { label: 'Profile',    href: '/profile', icon: UserIcon },
 ];
 

@@ -33,6 +33,7 @@ export interface Variant {
   sku: string;
   price: number;
   stock: number;
+  is_master: boolean;
   option_value_ids: number[];
   images: string[];
 }
@@ -69,7 +70,7 @@ export interface ProductListResponse {
   meta: { total: number; page: number; per_page: number; total_pages: number };
 }
 
-async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<{ ok: boolean, data: T | any, status: number }> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const headers = {
     'Content-Type': 'application/json',
@@ -78,50 +79,43 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     ...options.headers,
   };
 
-  const res = await fetch(`${BASE}${path}`, { 
-    ...options,
-    headers,
-    next: { revalidate: 60 } 
-  });
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers,
+    });
 
-  if (res.status === 401) {
-    // Handle unauthorized (optional: redirect to login)
-    if (typeof window !== 'undefined') {
-      // window.location.href = '/login'; 
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json() : null;
+
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        window.dispatchEvent(new Event('auth-change'));
+      }
     }
-  }
 
-  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
-  return res.json();
+    return { ok: res.ok, data, status: res.status };
+  } catch (error) {
+    console.error(`API Error: ${path}`, error);
+    return { ok: false, data: null, status: 500 };
+  }
 }
 
 export const api = {
   products: {
-    list: (params: Record<string, string | number> = {}): Promise<ProductListResponse> => {
+    list: (params: Record<string, string | number> = {}): Promise<{ ok: boolean, data: ProductListResponse | null, status: number }> => {
       const qs = new URLSearchParams(params as Record<string, string>).toString();
       return apiFetch(`/api/products${qs ? '?' + qs : ''}`);
     },
-    show: (slug: string): Promise<ProductDetail> =>
+    show: (slug: string): Promise<{ ok: boolean, data: ProductDetail | null, status: number }> =>
       apiFetch(`/api/products/${slug}`),
   },
   categories: {
-    list: (): Promise<Category[]> => apiFetch('/api/categories'),
-  },
-  cart: {
-    get: (): Promise<any> => apiFetch('/api/cart'),
-    addItem: (variantId: number, quantity: number): Promise<any> => 
-      apiFetch('/api/cart/add_item', {
-        method: 'POST',
-        body: JSON.stringify({ variant_id: variantId, quantity }),
-      }),
-    removeItem: (variantId: number): Promise<any> =>
-      apiFetch('/api/cart/remove_item', {
-        method: 'DELETE',
-        body: JSON.stringify({ variant_id: variantId }),
-      }),
+    list: (): Promise<{ ok: boolean, data: Category[] | null, status: number }> => apiFetch('/api/categories'),
   },
   auth: {
-    login: async (email: string, password: string): Promise<any> => {
+    login: async (email: string, password: string): Promise<{ ok: boolean, data: any, status: number }> => {
       const res = await fetch(`${BASE}/users/sign_in`, {
         method: 'POST',
         headers: {
@@ -133,10 +127,11 @@ export const api = {
       const data = await res.json();
       if (res.ok && data.data?.token) {
         localStorage.setItem('token', data.data.token);
+        window.dispatchEvent(new Event('auth-change'));
       }
-      return { ok: res.ok, data };
+      return { ok: res.ok, data, status: res.status };
     },
-    register: async (name: string, email: string, password: string): Promise<any> => {
+    register: async (name: string, email: string, password: string): Promise<{ ok: boolean, data: any, status: number }> => {
       const res = await fetch(`${BASE}/users`, {
         method: 'POST',
         headers: {
@@ -148,10 +143,11 @@ export const api = {
       const data = await res.json();
       if (res.ok && data.data?.token) {
         localStorage.setItem('token', data.data.token);
+        window.dispatchEvent(new Event('auth-change'));
       }
-      return { ok: res.ok, data };
+      return { ok: res.ok, data, status: res.status };
     },
-    logout: async (): Promise<any> => {
+    logout: async (): Promise<{ ok: boolean, data: any, status: number }> => {
       const token = localStorage.getItem('token');
       const res = await fetch(`${BASE}/users/sign_out`, {
         method: 'DELETE',
@@ -161,9 +157,10 @@ export const api = {
         },
       });
       localStorage.removeItem('token');
-      return { ok: res.ok };
+      window.dispatchEvent(new Event('auth-change'));
+      return { ok: res.ok, data: null, status: res.status };
     },
-    verifyOtp: async (email: string, otp_code: string): Promise<any> => {
+    verifyOtp: async (email: string, otp_code: string): Promise<{ ok: boolean, data: any, status: number }> => {
       const res = await fetch(`${BASE}/api/auth/verify_otp`, {
         method: 'POST',
         headers: {
@@ -173,7 +170,86 @@ export const api = {
         body: JSON.stringify({ email, otp_code }),
       });
       const data = await res.json();
-      return { ok: res.ok, data };
-    }
+      return { ok: res.ok, data, status: res.status };
+    },
+    getProfile: () => apiFetch('/api/profile'),
+    updateProfile: (name: string, email: string) =>
+      apiFetch('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ user: { name, email } }),
+      }),
+  },
+  addresses: {
+    list: () => apiFetch('/api/addresses'),
+    create: (address: any) =>
+      apiFetch('/api/addresses', {
+        method: 'POST',
+        body: JSON.stringify({ address }),
+      }),
+    update: (id: number, address: any) =>
+      apiFetch(`/api/addresses/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ address }),
+      }),
+    delete: (id: number) =>
+      apiFetch(`/api/addresses/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+  cart: {
+    get: (): Promise<{ ok: boolean, data: any, status: number }> => apiFetch('/api/cart'),
+    addItem: (variantId: number, quantity: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch('/api/cart/add_item', {
+        method: 'POST',
+        body: JSON.stringify({ variant_id: variantId, quantity }),
+      }).then(res => {
+        if (res.ok) window.dispatchEvent(new Event('cart-change'));
+        return res;
+      }),
+    updateItem: (variantId: number, quantity: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch('/api/cart/update_item', {
+        method: 'PATCH',
+        body: JSON.stringify({ variant_id: variantId, quantity }),
+      }).then(res => {
+        if (res.ok) window.dispatchEvent(new Event('cart-change'));
+        return res;
+      }),
+    removeItem: (variantId: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch('/api/cart/remove_item', {
+        method: 'DELETE',
+        body: JSON.stringify({ variant_id: variantId }),
+      }).then(res => {
+        if (res.ok) window.dispatchEvent(new Event('cart-change'));
+        return res;
+      }),
+  },
+  orders: {
+    list: (): Promise<{ ok: boolean, data: any, status: number }> => apiFetch('/api/orders'),
+    create: (cartItemIds: number[], addressId: number, paymentMethod: string) =>
+      apiFetch('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          cart_item_ids: cartItemIds,
+          address_id: addressId,
+          payment_method: paymentMethod,
+        }),
+      }),
+    cancel: (id: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch(`/api/orders/${id}/cancel`, {
+        method: 'PATCH',
+      }),
+  },
+  wishlist: {
+    list: (): Promise<{ ok: boolean, data: { products: ProductCard[] } | null, status: number }> =>
+      apiFetch('/api/wishlist_items'),
+    addItem: (productId: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch('/api/wishlist_items', {
+        method: 'POST',
+        body: JSON.stringify({ product_id: productId }),
+      }),
+    removeItem: (productId: number): Promise<{ ok: boolean, data: any, status: number }> =>
+      apiFetch(`/api/wishlist_items/${productId}`, {
+        method: 'DELETE',
+      }),
   }
 };

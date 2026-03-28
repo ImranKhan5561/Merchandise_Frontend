@@ -9,11 +9,15 @@ export const metadata: Metadata = {
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { WishlistProvider } from './context/WishlistContext';
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className="antialiased font-sans">
-        {children}
+        <WishlistProvider>
+          {children}
+        </WishlistProvider>
         <ToastContainer 
           position="top-right"
           autoClose={3000}

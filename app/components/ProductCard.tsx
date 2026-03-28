@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import { ProductCard as ProductCardType } from '../lib/api';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function ProductCard({ product, index = 0 }: { product: ProductCardType; index?: number }) {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isFavorited = isInWishlist(product.id);
   // Extract special tags for specific styling
   const isNew = product.tags?.some(t => t.toLowerCase() === 'new arrival');
   const isOnSale = product.on_sale || product.tags?.some(t => t.toLowerCase() === 'on sale');
 
   return (
-    <Link href={`/products/${product.slug}`} className="group block focus:outline-none focus:ring-2 focus:ring-[#8B7BB4] focus:ring-offset-2 rounded-2xl">
-      <div className="relative bg-white rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden border border-gray-100">
+    <Link href={`/products/${product.slug}`} className="group block h-full focus:outline-none focus:ring-2 focus:ring-[#8B7BB4] focus:ring-offset-2 rounded-2xl">
+      <div className="relative bg-white rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col h-full">
         
         {/* Modern Gradient Background on Hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#8B7BB4]/0 via-[#8B7BB4]/0 to-[#8B7BB4]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -31,13 +34,18 @@ export default function ProductCard({ product, index = 0 }: { product: ProductCa
 
         {/* Wishlist Button - Modern Glassmorphism */}
         <button 
-          className="absolute top-2 right-2 md:top-4 md:right-4 z-20 w-7 h-7 md:w-9 md:h-9 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 hover:bg-[#8B7BB4] hover:scale-110 active:scale-95 border border-white/50 group/wishlist"
+          className={`absolute top-2 right-2 md:top-4 md:right-4 z-20 w-7 h-7 md:w-9 md:h-9 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border border-white/50 group/wishlist ${
+            isFavorited ? 'bg-[#8B7BB4] text-white' : 'bg-white/80 text-gray-600 hover:bg-[#8B7BB4]'
+          }`}
           onClick={e => {
             e.preventDefault();
             e.stopPropagation();
+            toggleWishlist(product);
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600 group-hover/wishlist:text-white transition-colors">
+          <svg viewBox="0 0 24 24" fill={isFavorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} className={`w-3.5 h-3.5 md:w-4 md:h-4 transition-colors ${
+            isFavorited ? 'text-white' : 'text-gray-600 group-hover/wishlist:text-white'
+          }`}>
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
@@ -76,7 +84,7 @@ export default function ProductCard({ product, index = 0 }: { product: ProductCa
 
           {/* Name & Price Row */}
           <div className="flex flex-col mb-2">
-             <h3 className="text-sm md:text-base font-semibold text-gray-900 leading-tight line-clamp-2 mb-2 min-h-[2.5rem] md:min-h-0">
+             <h3 className="text-sm md:text-base font-semibold text-gray-900 leading-tight line-clamp-2 mb-2 min-h-[2.5rem]">
                 {product.name}
              </h3>
              <div className="flex items-baseline gap-2">

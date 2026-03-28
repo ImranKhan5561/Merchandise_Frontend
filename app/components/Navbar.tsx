@@ -1,80 +1,166 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { api } from '../lib/api';
+import { useRouter } from 'next/navigation';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
+  const { wishlist } = useWishlist();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+      if (token) {
+        fetchCartCount();
+      } else {
+        setCartCount(0);
+      }
+    };
+
+    const fetchCartCount = async () => {
+      try {
+        const { ok, data } = await api.cart.get();
+        if (ok && data.items) {
+          const count = data.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
+          setCartCount(count);
+        }
+      } catch {
+        console.error('Failed to fetch cart count');
+      }
+    };
+
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener('auth-change', checkAuth);
+    window.addEventListener('cart-change', fetchCartCount);
+
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-change', checkAuth);
+      window.removeEventListener('cart-change', fetchCartCount);
+    };
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
-    <nav className="h-24 flex items-center bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-gray-50/50">
-      <div className="container-custom flex items-center justify-between w-full gap-8">
-        
-        {/* Logo */}
-        <Link href="/" className="text-3xl font-black tracking-tighter text-[#1A142E] serif flex-shrink-0">
-          {title}
-        </Link>
-
-        {/* Desktop Nav Links - Shifted slightly left of center */}
-        <div className="hidden xl:flex items-center gap-12 ml-4">
-           {['Discover', 'Collections', 'Artisans'].map(link => (
-             <Link key={link} href={`/${link.toLowerCase()}`} className="text-[13px] font-bold uppercase tracking-[0.15em] text-[#6B6580] hover:text-[#8B7BB4] transition-all">
-               {link}
-             </Link>
-           ))}
+    <header className="sticky top-0 z-50">
+      {/* ── TOP BAR ── */}
+      <div className="bg-[#F5F5F5] border-b border-gray-200">
+        <div className="max-w-[1700px] mx-auto px-4 sm:px-10 flex items-center justify-between h-9">
+          {/* Announcement — hidden on mobile to avoid overflow */}
+          <p className="hidden sm:block text-[11.5px] text-[#555] font-normal tracking-wide">
+            Get up to 50% off on selected items,{' '}
+            <strong className="font-bold text-[#1A142E]">limited time only</strong>
+          </p>
+          {/* Utility links — always visible */}
+          <div className="flex items-center gap-4 sm:gap-5 text-[11px] sm:text-[11.5px] font-medium text-[#555] ml-auto">
+            <Link href="/help" className="hover:text-[#1A142E] transition-colors whitespace-nowrap">
+              Help Center
+            </Link>
+            <span className="text-gray-400">|</span>
+            <Link href="/orders/track" className="text-purple-500 font-bold hover:text-[#1A142E] transition-colors whitespace-nowrap">
+              Order Tracking
+            </Link>
+          </div>
         </div>
-
-        {/* Expanded Search Bar - Desktop Only */}
-        <div className="hidden md:flex flex-1 max-w-2xl relative group">
-           <input 
-             type="text" 
-             placeholder="Search for artisans, collections or pieces..."
-             className="w-full bg-gray-50 border border-transparent rounded-[1.25rem] py-4 pl-14 pr-6 text-[13px] font-medium text-gray-600 focus:bg-white focus:border-[#E6E1F9] focus:shadow-2xl focus:shadow-purple-100 transition-all outline-none"
-           />
-           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#8B7BB4] transition-colors">
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-           </svg>
-        </div>
-
-        {/* Action Icons */}
-        <div className="flex items-center gap-1 sm:gap-4 lg:gap-6 flex-shrink-0">
-           {/* Mobile Search Trigger */}
-           <button className="md:hidden p-2.5 text-gray-400 hover:text-[#8B7BB4] transition-all">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-           </button>
-
-           <Link href="/cart" className="p-2.5 text-[#1A142E] relative group hover:scale-110 transition-transform">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 6h18" strokeLinecap="round"/><path d="M16 10a4 4 0 01-1 7.2" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="10" r="1.5" />
-              </svg>
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#8B7BB4] text-[8px] font-black text-white flex items-center justify-center border-2 border-white">2</span>
-           </Link>
-
-           {isLoggedIn ? (
-             <Link href="/profile" className="hidden sm:flex p-2 flex-shrink-0 group hover:scale-105 transition-all">
-                <div className="w-10 h-10 rounded-full border-2 border-gray-100 p-0.5 overflow-hidden group-hover:border-[#8B7BB4] transition-all">
-                   <div className="w-full h-full rounded-full bg-purple-50 flex items-center justify-center text-[#8B7BB4]">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-5 h-5">
-                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                      </svg>
-                   </div>
-                </div>
-             </Link>
-           ) : (
-             <div className="hidden sm:flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#6B6580]">
-                <Link href="/login" className="hover:text-[#8B7BB4] transition-colors">Login</Link>
-                <span className="opacity-20">|</span>
-                <Link href="/register" className="hover:text-[#8B7BB4] transition-colors">Register</Link>
-             </div>
-           )}
-        </div>
-
       </div>
-    </nav>
+
+      {/* ── MAIN BAR ── */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-[1700px] mx-auto px-4 sm:px-10 flex items-center gap-4 sm:gap-8 h-[62px] sm:h-[78px]">
+
+          {/* Logo — matches reference closely */}
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <svg viewBox="0 0 48 48" className="w-[34px] h-[34px] sm:w-[46px] sm:h-[46px] flex-shrink-0" fill="none">
+              <path d="M6 10h5l6 22h18l5-15H15" stroke="#C8382A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="20" cy="37" r="3" fill="#C8382A"/>
+              <circle cx="35" cy="37" r="3" fill="#C8382A"/>
+              <path d="M18 16h14M15 21h17M13 26h19" stroke="#C8382A" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+            </svg>
+            <div className="leading-[1.15]">
+              <div className="text-[16px] sm:text-[20px] font-black tracking-[0.06em] text-[#1A142E] uppercase">{title}</div>
+              <div className="text-[8px] sm:text-[9.5px] font-semibold tracking-[0.22em] text-[#8B7BB4] uppercase">Boutique Store</div>
+            </div>
+          </Link>
+
+          {/* Search bar — desktop only */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-[580px] relative hidden md:flex">
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for products..."
+              className="w-full bg-[#F7F7F7] border border-gray-200 rounded-[6px] py-[11px] pl-5 pr-14 text-[13px] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#C8A2C8] focus:shadow-sm focus:outline-none transition-all"
+            />
+            <button
+              type="submit"
+              className="absolute right-0 top-0 h-full px-4 text-gray-400 hover:text-[#8B7BB4] transition-colors flex items-center border-l border-gray-200 rounded-r-[6px]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-[15px] h-[15px]">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </button>
+          </form>
+
+          {/* Right-side actions */}
+          <div className="flex items-center gap-3 sm:gap-5 flex-shrink-0 ml-auto">
+
+            {/* Login / Register or profile */}
+            {isLoggedIn ? (
+              <Link href="/profile" className="text-[#555] hover:text-[#C8382A] transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-[24px] h-[24px]">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </Link>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2 text-[13px] text-[#555]">
+                <Link href="/login" className="hover:text-[#C8382A] transition-colors font-medium">Login</Link>
+                <span className="text-gray-300">|</span>
+                <Link href="/register" className="hover:text-[#C8382A] transition-colors font-medium">Register</Link>
+              </div>
+            )}
+
+            {/* Wishlist — badge only when count > 0 */}
+            <Link href="/wishlist" className="relative text-gray-500 hover:text-[#C8382A] transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-[24px] h-[24px]">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+              {wishlist.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] rounded-full bg-[#8B7BB4] text-[8px] font-black text-white flex items-center justify-center border border-white px-0.5 animate-in zoom-in duration-200">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+
+            {/* Cart — badge only when cartCount > 0 */}
+            <Link href="/cart" className="relative text-gray-500 hover:text-[#C8382A] transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-[24px] h-[24px]">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6"/>
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] rounded-full bg-[#C8382A] text-[8px] font-black text-white flex items-center justify-center border border-white px-0.5 animate-in zoom-in duration-200">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </nav>
+    </header>
   );
 }

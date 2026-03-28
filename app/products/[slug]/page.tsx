@@ -8,7 +8,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
 
   try {
-    const product = await api.products.show(slug);
+    const { ok, data: product } = await api.products.show(slug);
+    
+    if (!ok || !product) return notFound();
     
     return (
       <div className="bg-bg min-h-screen">

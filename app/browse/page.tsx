@@ -21,15 +21,17 @@ function BrowseContent() {
       const query: Record<string, string | number> = { page, per_page: 12 };
       if (catId) query.category_id = catId;
       const res = await api.products.list(query);
-      setProducts(prev => page === 1 ? res.products : [...prev, ...res.products]);
-      setMeta(res.meta);
+      if (res.ok) {
+        setProducts(prev => page === 1 ? res.data?.products || [] : [...prev, ...(res.data?.products || [])]);
+        setMeta(res.data?.meta || { total: 0, page: 1, total_pages: 1 });
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    api.categories.list().then(setCategories).catch(() => {});
+    api.categories.list().then(r => setCategories(r.data || [])).catch(() => {});
     load(selectedCat, 1);
   }, [selectedCat, load]);
 

@@ -3,21 +3,21 @@ import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import ProductCard from './components/ProductCard';
 import SortDropdown from './components/SortDropdown';
-import PopularSection from './components/PopularSection';
+import FeaturedSection from './components/FeaturedSection';
+import DiscoveryCategories from './components/DiscoveryCategories';
+import DiscoverMoreSection from './components/DiscoverMoreSection';
 import Link from 'next/link';
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
   const { sort } = await searchParams;
 
-  const [popularRes, discoveryRes, categories] = await Promise.all([
-    api.products.list({ per_page: 4, featured: 'true' }).catch(() => ({ products: [], meta: {} as never })),
-    api.products.list({ per_page: 8, sort_by: sort || '' }).catch(() => ({ products: [], meta: {} as never })),
-    api.categories.list().catch(() => []),
+  const [popularRes, categoriesRes] = await Promise.all([
+    api.products.list({ per_page: 6, featured: 'true' }),
+    api.categories.list(),
   ]);
 
-  const featuredProducts = popularRes.products;
-  const products = discoveryRes.products;
-  const allCats = categories;
+  const featuredProducts = popularRes.data?.products || [];
+  const allCats = categoriesRes.data || [];
 
   return (
     <div className="bg-bg min-h-screen">
@@ -26,7 +26,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <main className="container-custom">
         
         {/* ── HERO HEADER & CATEGORIES ── */}
-        <section className="pt-8 md:pt-12 pb-10">
+        <section className="pt-8 md:pt-12 pb-7 md:pb-10">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl md:text-5xl font-semibold tracking-tight text-[#1A142E]">
               Discover
@@ -37,35 +37,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             Discover Products of your <span className="text-[#8B7BB4]">interest</span> from our curated collection.
           </p>
           
-          <div className="flex gap-2 md:gap-12 overflow-x-auto scrollbar-none">
-            {allCats.map((cat, i) => (
-              <Link key={cat.id} href={`/browse?category_id=${cat.id}`} className="group flex flex-col items-center gap-2 md:gap-6 flex-shrink-0">
-                <div className="w-18 md:w-32 h-18 md:h-32 rounded-full overflow-hidden group-hover:border-[#8B7BB4] transition-all p-1 bg-white shadow-soft group-hover:shadow-2xl">
-                  <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center overflow-hidden relative">
-                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                     <img 
-                       src={cat.image_url || `https://images.unsplash.com/photo-${[
-                         '1515886657613-9f3515b0c78f', // fashion
-                         '1483985988355-763728e1935b', // shopping
-                         '1496747611176-843222e1e57c', // accessories
-                         '1539109132381-31a15b2c6a63', // dresses
-                         '1485968579580-b6d095142e6e', // accessories
-                       ][i % 5]}?q=80&w=300&auto=format&fit=crop`} 
-                       alt={cat.name} 
-                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                     />
-                  </div>
-                </div>
-                <span className="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em] group-hover:text-[#8B7BB4] transition-colors text-center">
-                  {cat.name}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <DiscoveryCategories categories={allCats} />
         </section>
 
-        {/* ── POPULAR NOW (Dynamic Tabs) ── */}
-        <PopularSection 
+        <FeaturedSection 
           initialProducts={featuredProducts} 
           categories={allCats} 
         />
@@ -96,27 +71,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
            </div>
         </section>
 
-        {/* ── DISCOVER MORE ── */}
-        <section className="pb-32">
-           <div className="flex items-center justify-between mb-16">
-              <div>
-                 <h2 className="text-4xl font-semibold text-[#1A142E] mb-3 tracking-tight">Discover More</h2>
-                 <p className="text-base font-medium text-gray-400">Explore our full collection of artisan goods</p>
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-20">
-              {products.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} />
-              ))}
-           </div>
-           
-           <div className="mt-20 flex justify-center">
-              <Link href="/browse" className="px-12 py-5 border-2 border-[#1A142E] text-[#1A142E] rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:bg-[#1A142E] hover:text-white hover:shadow-2xl active:scale-95">
-                 View All Products
-              </Link>
-           </div>
-        </section>
+        {/* ── DISCOVER MORE (Infinite Scroll & Filters) ── */}
+        <DiscoverMoreSection 
+          categories={allCats} 
+          initialSort={sort}
+        />
 
       </main>
 
