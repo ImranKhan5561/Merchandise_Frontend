@@ -193,11 +193,10 @@ export default function ProfilePage() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-4 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${
-                    activeTab === tab
+                  className={`flex-1 py-4 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${activeTab === tab
                       ? 'bg-[#1A142E] text-white shadow-xl shadow-purple-900/10'
                       : 'text-[#8B7BB4] hover:bg-white hover:text-[#1A142E]'
-                  }`}
+                    }`}
                 >
                   {tab === 'account' ? 'My Account' : 'Addresses'}
                 </button>
@@ -218,9 +217,31 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] block mb-2">Status</label>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${user.is_verified ? 'bg-green-400' : 'bg-orange-400'}`} />
-                      <p className="text-[#1A142E] font-medium">{user.is_verified ? 'Verified Account' : 'Pending Verification'}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${user.is_verified ? 'bg-green-400' : 'bg-orange-400'}`} />
+                        <p className="text-[#1A142E] font-medium">{user.is_verified ? 'Verified Account' : 'Pending Verification'}</p>
+                      </div>
+                      {!user.is_verified && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { ok, data } = await api.auth.resendOtp(user.email);
+                              if (ok) {
+                                toast.success("Verification code sent! Redirecting...");
+                                setTimeout(() => router.push(`/verify-otp?email=${encodeURIComponent(user.email)}`), 1200);
+                              } else {
+                                toast.error(data?.status?.message || "Failed to resend code");
+                              }
+                            } catch (err) {
+                              toast.error("Error connecting to server");
+                            }
+                          }}
+                          className="bg-[#1A142E] text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95"
+                        >
+                          Verify Now
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -286,7 +307,7 @@ export default function ProfilePage() {
                 onClick={() => setIsProfileModalOpen(false)}
                 className="absolute top-8 right-8 text-gray-300 hover:text-gray-500"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
               <h3 className="text-2xl font-bold serif text-[#1A142E] mb-8">Edit Profile</h3>
               <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -325,7 +346,7 @@ export default function ProfilePage() {
                 onClick={() => setIsAddressModalOpen(false)}
                 className="absolute top-8 right-8 text-gray-300 hover:text-gray-500"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
               <h3 className="text-2xl font-bold serif text-[#1A142E] mb-8">{editingAddress ? 'Edit Address' : 'New Address'}</h3>
               <AddressForm
@@ -365,7 +386,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Type</label>
           <select
             value={formData.address_type}
-            onChange={(e) => setFormData({...formData, address_type: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, address_type: e.target.value })}
             className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           >
             <option>Home</option>
@@ -378,7 +399,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
             <input
               type="checkbox"
               checked={formData.is_default}
-              onChange={(e) => setFormData({...formData, is_default: e.target.checked})}
+              onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
               className="w-4 h-4 rounded border-gray-200 text-[#8B7BB4] focus:ring-[#8B7BB4]"
             />
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6B6580]">Set as Default</span>
@@ -390,7 +411,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Street Address</label>
         <input
           type="text" required value={formData.address_line_1}
-          onChange={(e) => setFormData({...formData, address_line_1: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
           className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           placeholder="123 Ethereal Lane"
         />
@@ -400,7 +421,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Apt / Suite (Optional)</label>
         <input
           type="text" value={formData.address_line_2}
-          onChange={(e) => setFormData({...formData, address_line_2: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, address_line_2: e.target.value })}
           className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           placeholder="Suite 404"
         />
@@ -411,7 +432,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">City</label>
           <input
             type="text" required value={formData.city}
-            onChange={(e) => setFormData({...formData, city: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
             className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           />
         </div>
@@ -419,7 +440,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">State / Province</label>
           <input
             type="text" required value={formData.state}
-            onChange={(e) => setFormData({...formData, state: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
             className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           />
         </div>
@@ -430,7 +451,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Postal Code</label>
           <input
             type="text" required value={formData.postal_code}
-            onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
             className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           />
         </div>
@@ -438,7 +459,7 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Country</label>
           <input
             type="text" required value={formData.country}
-            onChange={(e) => setFormData({...formData, country: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
             className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           />
         </div>

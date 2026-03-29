@@ -160,6 +160,18 @@ export const api = {
       window.dispatchEvent(new Event('auth-change'));
       return { ok: res.ok, data: null, status: res.status };
     },
+    resendOtp: async (email: string): Promise<{ ok: boolean, data: any, status: number }> => {
+      const res = await fetch(`${BASE}/api/auth/resend_otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      return { ok: res.ok, data, status: res.status };
+    },
     verifyOtp: async (email: string, otp_code: string): Promise<{ ok: boolean, data: any, status: number }> => {
       const res = await fetch(`${BASE}/api/auth/verify_otp`, {
         method: 'POST',
