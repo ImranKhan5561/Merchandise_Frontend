@@ -108,15 +108,14 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      const { ok } = await api.auth.logout();
-      if (ok) {
-        toast.success("Logged out successfully. ✨");
-        window.dispatchEvent(new Event('auth-change'));
-        router.push('/');
-        router.refresh();
-      }
+      await api.auth.logout();
+      toast.success("Logged out successfully. ✨");
     } catch (err) {
-      toast.error("Logout failed.");
+      console.error("Logout error", err);
+    } finally {
+      window.dispatchEvent(new Event('auth-change'));
+      router.push('/');
+      setTimeout(() => router.refresh(), 100);
     }
   };
 
@@ -194,8 +193,8 @@ export default function ProfilePage() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-4 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${activeTab === tab
-                      ? 'bg-[#1A142E] text-white shadow-xl shadow-purple-900/10'
-                      : 'text-[#8B7BB4] hover:bg-white hover:text-[#1A142E]'
+                    ? 'bg-[#1A142E] text-white shadow-xl shadow-purple-900/10'
+                    : 'text-[#8B7BB4] hover:bg-white hover:text-[#1A142E]'
                     }`}
                 >
                   {tab === 'account' ? 'My Account' : 'Addresses'}
