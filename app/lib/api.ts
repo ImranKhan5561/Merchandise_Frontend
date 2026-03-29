@@ -149,16 +149,21 @@ export const api = {
     },
     logout: async (): Promise<{ ok: boolean, data: any, status: number }> => {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${BASE}/users/sign_out`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-      localStorage.removeItem('token');
-      window.dispatchEvent(new Event('auth-change'));
-      return { ok: res.ok, data: null, status: res.status };
+      try {
+        const res = await fetch(`${BASE}/users/sign_out`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+          },
+        });
+        return { ok: res.ok, data: null, status: res.status };
+      } catch (err) {
+        return { ok: false, data: null, status: 500 };
+      } finally {
+        localStorage.removeItem('token');
+        window.dispatchEvent(new Event('auth-change'));
+      }
     },
     resendOtp: async (email: string): Promise<{ ok: boolean, data: any, status: number }> => {
       const res = await fetch(`${BASE}/api/auth/resend_otp`, {

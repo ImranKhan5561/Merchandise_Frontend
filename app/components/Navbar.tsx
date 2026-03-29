@@ -127,7 +127,7 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
                 </svg>
               </Link>
             ) : (
-              <div className="hidden sm:flex items-center gap-2 text-[13px] text-[#555]">
+              <div className="flex items-center gap-2 text-[11px] sm:text-[13px] text-[#555]">
                 <Link href="/login" className="hover:text-[#C8382A] transition-colors font-medium">Login</Link>
                 <span className="text-gray-300">|</span>
                 <Link href="/register" className="hover:text-[#C8382A] transition-colors font-medium">Register</Link>
