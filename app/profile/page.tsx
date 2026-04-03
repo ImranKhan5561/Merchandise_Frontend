@@ -172,6 +172,14 @@ export default function ProfilePage() {
                   >
                     My Orders
                   </Link>
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin/banners"
+                      className="w-full bg-purple-50 text-[#8B7BB4] border border-purple-100 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-purple-100 transition-all text-center block"
+                    >
+                      Banner Management
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full bg-white border border-gray-100 text-[#6B6580] py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all"
@@ -268,11 +276,13 @@ export default function ProfilePage() {
                           <span className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-widest bg-purple-100 text-[#8B7BB4] px-2 py-1 rounded-full">Default</span>
                         )}
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] mb-3">{addr.address_type}</h3>
+                        <p className="text-[#1A142E] font-bold text-sm mb-1">{addr.full_name}</p>
                         <p className="text-[#1A142E] font-medium text-sm mb-1">{addr.address_line_1}</p>
                         {addr.address_line_2 && <p className="text-[#1A142E] font-medium text-sm mb-1">{addr.address_line_2}</p>}
+                        {addr.landmark && <p className="text-[#6B6580] text-xs mb-1">Landmark: {addr.landmark}</p>}
                         <p className="text-[#6B6580] text-xs">{addr.city}, {addr.state} {addr.postal_code}</p>
-                        <p className="text-[#6B6580] text-xs mb-4">{addr.country}</p>
-
+                        <p className="text-[#6B6580] text-xs mb-2">{addr.country}</p>
+                        <p className="text-[#1A142E] font-medium text-xs mb-4">Phone: {addr.phone_number}</p>
                         <div className="flex gap-4 pt-4 border-t border-white/20">
                           <button
                             onClick={() => { setEditingAddress(addr); setIsAddressModalOpen(true); }}
@@ -364,6 +374,10 @@ export default function ProfilePage() {
 function AddressForm({ initialData, onSave, onCancel }: any) {
   const [formData, setFormData] = useState({
     address_type: initialData?.address_type || 'Home',
+    full_name: initialData?.full_name || '',
+    phone_number: initialData?.phone_number || '',
+    alternate_phone: initialData?.alternate_phone || '',
+    landmark: initialData?.landmark || '',
     address_line_1: initialData?.address_line_1 || '',
     address_line_2: initialData?.address_line_2 || '',
     city: initialData?.city || '',
@@ -406,8 +420,30 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Full Name</label>
+          <input
+            type="text" required value={formData.full_name}
+            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+            className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
+            placeholder="John Doe"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Phone Number</label>
+          <input
+            type="text" required value={formData.phone_number}
+            onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+            className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
+            placeholder="+1 234 567 8900"
+          />
+        </div>
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Street Address</label>
+
         <input
           type="text" required value={formData.address_line_1}
           onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
@@ -424,6 +460,27 @@ function AddressForm({ initialData, onSave, onCancel }: any) {
           className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
           placeholder="Suite 404"
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Landmark (Optional)</label>
+          <input
+            type="text" value={formData.landmark}
+            onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+            className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
+            placeholder="Near Central Park"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B7BB4] ml-2">Alt Phone (Optional)</label>
+          <input
+            type="text" value={formData.alternate_phone}
+            onChange={(e) => setFormData({ ...formData, alternate_phone: e.target.value })}
+            className="w-full bg-white/50 border border-gray-100 rounded-2xl py-3 px-5 text-xs outline-none focus:border-[#8B7BB4]"
+            placeholder="+1 987 654 3210"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

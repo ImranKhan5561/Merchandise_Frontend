@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 import { useRouter } from 'next/navigation';
 import { useWishlist } from '../context/WishlistContext';
+import CategoryMegaMenu from './CategoryMegaMenu';
 
 export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
   const { wishlist } = useWishlist();
@@ -79,7 +80,7 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
       </div>
 
       {/* ── MAIN BAR ── */}
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-white border-b border-gray-100">
         <div className="container-custom flex items-center gap-4 sm:gap-8 h-[62px] sm:h-[78px]">
 
           {/* Logo — matches reference closely */}
@@ -161,6 +162,9 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
           </div>
         </div>
       </nav>
+
+      {/* ── CATEGORY MEGA MENU ── */}
+      <CategoryMegaMenu />
     </header>
   );
 }

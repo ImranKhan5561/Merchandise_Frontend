@@ -77,7 +77,7 @@ function VerifyOtpContent() {
 
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-[480px]">
-          <div className="bg-white/80 backdrop-blur-3xl border border-white rounded-[3.5rem] p-12 shadow-2xl shadow-purple-100/50 relative overflow-hidden text-center">
+          <div className="bg-white/80 backdrop-blur-3xl border border-white rounded-[3.5rem] p-6 sm:p-12 shadow-2xl shadow-purple-100/50 relative overflow-hidden text-center">
 
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-50/40 rounded-full blur-3xl" />
 
@@ -95,8 +95,8 @@ function VerifyOtpContent() {
               </p>
             </div>
 
-            <form onSubmit={handleVerify} className="space-y-10 relative z-10">
-              <div className="flex justify-between gap-2">
+            <form onSubmit={handleVerify} className="space-y-10 relative z-10 w-full max-w-full">
+              <div className="flex justify-center sm:justify-between gap-1 sm:gap-2">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -108,7 +108,7 @@ function VerifyOtpContent() {
                     value={digit}
                     onChange={e => handleChange(index, e.target.value)}
                     onKeyDown={e => handleKeyDown(index, e)}
-                    className="w-12 h-16 sm:w-14 sm:h-20 text-center text-2xl font-bold bg-white border border-gray-100 rounded-2xl focus:border-[#8B7BB4] focus:shadow-xl focus:shadow-purple-50 outline-none transition-all"
+                    className="w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20 text-center text-xl sm:text-2xl font-bold bg-white border border-gray-100 rounded-2xl focus:border-[#8B7BB4] focus:shadow-xl focus:shadow-purple-50 outline-none transition-all flex-shrink min-w-0"
                   />
                 ))}
               </div>

@@ -15,6 +15,7 @@ function CheckoutContent() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>('cod');
+  const [orderNotes, setOrderNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -66,7 +67,7 @@ function CheckoutContent() {
     setIsPlacingOrder(true);
     const itemIds = items.map(item => item.id);
     try {
-      const { ok, data } = await api.orders.create(itemIds, selectedAddressId, paymentMethod);
+      const { ok, data } = await api.orders.create(itemIds, selectedAddressId, paymentMethod, orderNotes);
       if (ok) {
         toast.success("Order placed successfully!");
         router.push('/profile'); // Or success page
@@ -142,9 +143,14 @@ function CheckoutContent() {
                         className="mt-1 text-[#8B7BB4] focus:ring-[#8B7BB4]"
                       />
                       <div>
-                        <p className="font-bold text-sm text-[#1A142E] capitalize">{addr.address_type} Address</p>
+                        <div className="flex gap-2 items-baseline">
+                          <p className="font-bold text-sm text-[#1A142E] capitalize">{addr.address_type} Address</p>
+                          <p className="text-xs font-bold text-[#8B7BB4]">{addr.full_name}</p>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">{addr.address_line_1} {addr.address_line_2}</p>
+                        {addr.landmark && <p className="text-xs text-gray-500">Landmark: {addr.landmark}</p>}
                         <p className="text-xs text-gray-500">{addr.city}, {addr.state}, {addr.country} - {addr.postal_code}</p>
+                        <p className="text-xs font-medium text-[#1A142E] mt-1">Phone: {addr.phone_number}</p>
                       </div>
                     </label>
                   ))}
@@ -180,6 +186,17 @@ function CheckoutContent() {
                   <span className="font-bold text-sm text-gray-400">Credit Card (Coming Soon)</span>
                 </label>
               </div>
+            </div>
+
+            {/* Order Notes */}
+            <div className="bg-white rounded-[2rem] p-6 border border-gray-50 shadow-soft">
+              <h3 className="text-xl font-bold font-serif text-[#1A142E] mb-4">Order Notes (Optional)</h3>
+              <textarea
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                placeholder="Any special instructions for delivery..."
+                className="w-full bg-white/50 border border-gray-100 rounded-2xl py-4 px-6 text-sm outline-none focus:border-[#8B7BB4] min-h-[100px] resize-none"
+              />
             </div>
 
           </div>

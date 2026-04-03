@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import ProductCard from './components/ProductCard';
 import SortDropdown from './components/SortDropdown';
+import HeroBannerCarousel from './components/HeroBannerCarousel';
 import FeaturedSection from './components/FeaturedSection';
 import DiscoveryCategories from './components/DiscoveryCategories';
 import DiscoverMoreSection from './components/DiscoverMoreSection';
@@ -11,13 +12,15 @@ import Link from 'next/link';
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
   const { sort } = await searchParams;
 
-  const [popularRes, categoriesRes] = await Promise.all([
+  const [popularRes, categoriesRes, bannersRes] = await Promise.all([
     api.products.list({ per_page: 6, featured: 'true' }),
     api.categories.list(),
+    api.banners.list(),
   ]);
 
   const featuredProducts = popularRes.data?.products || [];
   const allCats = categoriesRes.data || [];
+  const banners = bannersRes.data?.data?.banners || [];
 
   return (
     <div className="bg-bg min-h-screen">
@@ -45,31 +48,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           categories={allCats} 
         />
 
-        {/* ── FULL-WIDTH ARTISAN HERO ── */}
-        <section className="pb-32">
-           <div className="relative h-[700px] rounded-[5rem] overflow-hidden group shadow-2xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=2400&auto=format&fit=crop" 
-                alt="Artisan Collection"
-                className="w-full h-full object-cover transition-transform duration-[5s] group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-              
-              <div className="absolute inset-x-16 lg:inset-x-32 inset-y-0 flex flex-col justify-center max-w-4xl text-white">
-                 <p className="text-[10px] font-black uppercase tracking-[0.5rem] mb-10 opacity-60">Spring Drop 2024</p>
-                 <h2 className="text-7xl lg:text-9xl font-bold leading-[0.95] mb-12 tracking-tight">
-                    The Artisan <br /> Collection
-                 </h2>
-                 <p className="text-xl font-medium opacity-70 mb-14 leading-relaxed max-w-xl">
-                    Experience the synergy of tradition and modern aesthetics. Each piece is hand-crafted with precision.
-                 </p>
-                 <Link href="/browse" className="inline-block px-14 py-6 bg-white text-[#1A142E] rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:bg-gray-100 hover:-translate-y-1 hover:shadow-2xl w-fit active:translate-y-0">
-                    Discover Collection
-                 </Link>
-              </div>
-           </div>
-        </section>
+        {/* ── DYNAMIC HERO CAROUSEL ── */}
+        <HeroBannerCarousel banners={banners} />
 
         {/* ── DISCOVER MORE (Infinite Scroll & Filters) ── */}
         <DiscoverMoreSection 

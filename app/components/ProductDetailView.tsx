@@ -201,7 +201,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start max-w-[1200px] mx-auto px-4 md:px-6 py-4 md:py-8 bg-[#FDFBFF] md:bg-transparent min-h-screen">
+    <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start max-w-[1200px] mx-auto px-4 md:px-6 pt-4 pb-36 md:py-8 bg-[#FDFBFF] md:bg-transparent min-h-screen">
 
       {/* ── LEFT: IMAGE GALLERY ── */}
       <div className="w-full lg:w-[45%] flex flex-col items-center">
@@ -414,7 +414,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
       </div>
 
       {/* ── BOTTOM STICKY ACTIONS ── */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-gray-50 p-4 md:p-6 z-40 flex items-center gap-4 justify-center shadow-[0_-10px_40px_rgba(0,0,0,0.03)] lg:bg-transparent lg:border-none lg:shadow-none lg:bottom-auto lg:top-8 lg:left-auto lg:right-12 lg:w-auto lg:flex-col lg:backdrop-blur-none">
+      <div className="fixed bottom-24 left-6 right-6 rounded-[2rem] bg-white/95 backdrop-blur-2xl border border-gray-100 p-4 z-40 flex items-center gap-4 justify-center shadow-[0_10px_40px_rgba(0,0,0,0.1)] lg:bg-transparent lg:border-none lg:shadow-none lg:bottom-auto lg:top-8 lg:left-auto lg:right-12 lg:w-auto lg:flex-col lg:backdrop-blur-none lg:p-0">
         <button
           onClick={(e) => {
             e.preventDefault();

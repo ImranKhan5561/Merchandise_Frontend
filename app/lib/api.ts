@@ -51,7 +51,7 @@ export interface ProductDetail {
   featured: boolean;
   free_shipping: boolean;
   tags: string[];
-  category: { id: number; name: string } | null;
+  category: Category | null;
   images: string[];
   option_types: OptionType[];
   variants: Variant[];
@@ -61,8 +61,23 @@ export interface ProductDetail {
 export interface Category {
   id: number;
   name: string;
+  slug: string;
   image_url: string | null;
-  children: { id: number; name: string; image_url: string | null }[];
+  children: Category[];
+}
+
+export interface Banner {
+  id: number;
+  title: string;
+  subtitle: string;
+  badge_text: string;
+  description: string;
+  button_text: string;
+  button_link: string;
+  image_url: string;
+  position: number;
+  active: boolean;
+  text_align: string;
 }
 
 export interface ProductListResponse {
@@ -242,13 +257,14 @@ export const api = {
   },
   orders: {
     list: (): Promise<{ ok: boolean, data: any, status: number }> => apiFetch('/api/orders'),
-    create: (cartItemIds: number[], addressId: number, paymentMethod: string) =>
+    create: (cartItemIds: number[], addressId: number, paymentMethod: string, orderNotes?: string) =>
       apiFetch('/api/orders', {
         method: 'POST',
         body: JSON.stringify({
           cart_item_ids: cartItemIds,
           address_id: addressId,
           payment_method: paymentMethod,
+          order_notes: orderNotes,
         }),
       }),
     cancel: (id: number): Promise<{ ok: boolean, data: any, status: number }> =>
@@ -266,6 +282,24 @@ export const api = {
       }),
     removeItem: (productId: number): Promise<{ ok: boolean, data: any, status: number }> =>
       apiFetch(`/api/wishlist_items/${productId}`, {
+        method: 'DELETE',
+      }),
+  },
+  banners: {
+    list: (): Promise<{ ok: boolean, data: { status: any, data: { banners: Banner[] } }, status: number }> =>
+      apiFetch('/api/banners'),
+    create: (banner: any) =>
+      apiFetch('/api/banners', {
+        method: 'POST',
+        body: JSON.stringify({ banner }),
+      }),
+    update: (id: number, banner: any) =>
+      apiFetch(`/api/banners/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ banner }),
+      }),
+    delete: (id: number) =>
+      apiFetch(`/api/banners/${id}`, {
         method: 'DELETE',
       }),
   }
