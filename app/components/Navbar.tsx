@@ -2,17 +2,22 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useWishlist } from '../context/WishlistContext';
 import CategoryMegaMenu from './CategoryMegaMenu';
+import MobileCategoryMenu from './MobileCategoryMenu';
 
 export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
   const { wishlist } = useWishlist();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const isHomePage = pathname === '/';
 
   useEffect(() => {
     const checkAuth = () => {
@@ -82,6 +87,16 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
       {/* ── MAIN BAR ── */}
       <nav className="bg-white border-b border-gray-100">
         <div className="container-custom flex items-center gap-4 sm:gap-8 h-[62px] sm:h-[78px]">
+          
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden p-2 -ml-2 text-[#1A142E] hover:text-[#8B7BB4] transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
           {/* Logo — matches reference closely */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -164,7 +179,13 @@ export default function Navbar({ title = 'Ethereal' }: { title?: string }) {
       </nav>
 
       {/* ── CATEGORY MEGA MENU ── */}
-      <CategoryMegaMenu />
+      {!isHomePage && <CategoryMegaMenu />}
+
+      {/* ── MOBILE CATEGORY MENU ── */}
+      <MobileCategoryMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+      />
     </header>
   );
 }
