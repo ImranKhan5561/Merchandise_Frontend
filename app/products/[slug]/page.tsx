@@ -1,7 +1,6 @@
 import { api } from '@/app/lib/api';
 import ProductDetailView from '../../components/ProductDetailView';
 import Navbar from '@/app/components/Navbar';
-import BottomNav from '@/app/components/BottomNav';
 import { notFound } from 'next/navigation';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -15,10 +14,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     return (
       <div className="bg-bg min-h-screen">
         <Navbar />
-        <main className="container-custom pt-12 pb-32">
+        <main className="container-custom pt-12 pb-12">
           <ProductDetailView product={product} />
         </main>
-        <BottomNav />
       </div>
     );
   } catch (error) {

@@ -1,6 +1,5 @@
 import { api } from './lib/api';
 import Navbar from './components/Navbar';
-import BottomNav from './components/BottomNav';
 import ProductCard from './components/ProductCard';
 import SortDropdown from './components/SortDropdown';
 import HeroBannerCarousel from './components/HeroBannerCarousel';
@@ -95,7 +94,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
          </div>
       </footer>
 
-      <BottomNav />
     </div>
   );
 }

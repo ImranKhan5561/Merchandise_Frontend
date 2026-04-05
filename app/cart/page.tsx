@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import Link from 'next/link';
 import { api } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -213,7 +212,6 @@ export default function CartPage() {
         )}
       </main>
 
-      <BottomNav />
     </div>
   );
 }

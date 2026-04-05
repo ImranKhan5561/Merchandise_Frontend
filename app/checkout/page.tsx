@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import { api } from '../lib/api';
 import { toast } from 'react-toastify';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -228,7 +227,6 @@ function CheckoutContent() {
         </div>
       </main>
 
-      <BottomNav />
     </div>
   );
 }

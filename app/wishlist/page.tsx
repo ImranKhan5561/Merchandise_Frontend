@@ -3,7 +3,6 @@
 import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import Link from 'next/link';
 
 export default function WishlistPage() {
@@ -54,7 +53,6 @@ export default function WishlistPage() {
         )}
       </main>
 
-      <BottomNav />
     </div>
   );
 }

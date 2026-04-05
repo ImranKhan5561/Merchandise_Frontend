@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, ProductCard as ProductCardType, Category } from '../lib/api';
 import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import ProductCard from '../components/ProductCard';
 
 function BrowseContent() {
@@ -108,7 +107,6 @@ function BrowseContent() {
         )}
       </main>
 
-      <BottomNav />
     </div>
   );
 }

@@ -338,6 +338,52 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
             );
           })}
         </div>
+        
+        {/* ── DESKTOP ACTIONS (Inline) ── */}
+        <div className="hidden lg:flex items-center gap-6 mb-12">
+          <div className="flex-1 flex gap-4">
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding || activeVariant?.stock === 0}
+              className="flex-1 h-14 bg-[#6D5E99] text-white rounded-full font-bold text-[13px] transition-all hover:bg-[#594C82] hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 shadow-lg flex items-center justify-center gap-2"
+            >
+              {isAdding ? (
+                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3z" /></svg>
+                  Add to Bag
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                const productCard: ProductCardType = {
+                  id: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  brand: product.brand,
+                  base_price: product.base_price,
+                  compare_at_price: product.compare_at_price,
+                  discount: product.discount,
+                  on_sale: product.on_sale,
+                  cover_image: product.images[0] || null,
+                  category: product.category?.name || null,
+                  tags: product.tags
+                };
+                toggleWishlist(productCard);
+              }}
+              className={`w-14 h-14 shrink-0 rounded-full flex items-center justify-center transition-colors group ${isFavorited ? 'bg-[#E5E0F1] text-[#6D5E99]' : 'bg-[#F5F3FB] text-gray-400 hover:text-red-500'}`}
+              title={isFavorited ? "Remove from Wishlist" : "Add to Wishlist"}
+            >
+              <svg className={`w-6 h-6 transition-transform ${isFavorited ? 'scale-110' : 'group-hover:scale-110'}`} fill={isFavorited ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
         {/* ── TECHNICAL PROWESS (Specs Grid) ── */}
         {product.specifications && product.specifications.length > 0 && (
@@ -413,8 +459,8 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
 
       </div>
 
-      {/* ── BOTTOM STICKY ACTIONS ── */}
-      <div className="fixed bottom-24 left-6 right-6 rounded-[2rem] bg-white/95 backdrop-blur-2xl border border-gray-100 p-4 z-40 flex items-center gap-4 justify-center shadow-[0_10px_40px_rgba(0,0,0,0.1)] lg:bg-transparent lg:border-none lg:shadow-none lg:bottom-auto lg:top-8 lg:left-auto lg:right-12 lg:w-auto lg:flex-col lg:backdrop-blur-none lg:p-0">
+      {/* ── COMPACT MOBILE ACTIONS (Pinned to bottom-6) ── */}
+      <div className="lg:hidden fixed bottom-6 left-6 right-6 rounded-[1.5rem] bg-white/90 backdrop-blur-2xl border border-white/50 p-3 z-40 flex items-center gap-3 justify-center shadow-2xl">
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -433,9 +479,9 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
             };
             toggleWishlist(productCard);
           }}
-          className={`w-14 h-14 shrink-0 rounded-full flex items-center justify-center transition-colors group ${isFavorited ? 'bg-[#E5E0F1] text-[#6D5E99]' : 'bg-[#F5F3FB] text-gray-400 hover:text-red-500'}`}
+          className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${isFavorited ? 'bg-[#E5E0F1] text-[#6D5E99]' : 'bg-[#F5F3FB] text-gray-400'}`}
         >
-          <svg className={`w-6 h-6 transition-transform ${isFavorited ? 'scale-110' : 'group-hover:scale-110'}`} fill={isFavorited ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className={`w-5 h-5 transition-transform ${isFavorited ? 'scale-110' : ''}`} fill={isFavorited ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
@@ -443,7 +489,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
         <button
           onClick={handleAddToCart}
           disabled={isAdding || activeVariant?.stock === 0}
-          className="flex-1 lg:flex-none lg:px-12 h-14 bg-[#6D5E99] text-white rounded-full font-bold text-[13px] transition-all hover:bg-[#594C82] hover:shadow-xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 shadow-lg flex items-center justify-center gap-2"
+          className="flex-1 h-12 bg-[#6D5E99] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-lg flex items-center justify-center gap-2"
         >
           {isAdding ? (
             <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
