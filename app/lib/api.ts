@@ -302,5 +302,12 @@ export const api = {
       apiFetch(`/api/banners/${id}`, {
         method: 'DELETE',
       }),
+  },
+  paymentIntents: {
+    create: (orderId: number): Promise<{ ok: boolean, data: { client_secret: string, payment_intent_id: string } | null, status: number }> =>
+      apiFetch('/api/payment_intents', {
+        method: 'POST',
+        body: JSON.stringify({ order_id: orderId }),
+      }),
   }
 };

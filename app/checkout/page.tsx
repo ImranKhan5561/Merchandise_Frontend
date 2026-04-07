@@ -5,6 +5,11 @@ import Navbar from '../components/Navbar';
 import { api } from '../lib/api';
 import { toast } from 'react-toastify';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripePaymentForm from '../components/StripePaymentForm';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
 
 function CheckoutContent() {
   const router = useRouter();
@@ -17,6 +22,9 @@ function CheckoutContent() {
   const [orderNotes, setOrderNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<any>(null);
 
   useEffect(() => {
     if (!itemsParam) {
@@ -68,8 +76,21 @@ function CheckoutContent() {
     try {
       const { ok, data } = await api.orders.create(itemIds, selectedAddressId, paymentMethod, orderNotes);
       if (ok) {
-        toast.success("Order placed successfully!");
-        router.push('/profile'); // Or success page
+        if (paymentMethod === 'online') {
+          // Fetch client secret
+          const intentRes = await api.paymentIntents.create(data?.order?.id);
+          if (intentRes.ok && intentRes.data) {
+            setClientSecret(intentRes.data.client_secret);
+            setPendingOrder(data.order);
+            setShowStripeModal(true);
+          } else {
+            toast.error("Failed to initialize payment. Please try again from your profile.");
+            router.push('/profile');
+          }
+        } else {
+          toast.success("Order placed successfully!");
+          router.push('/profile');
+        }
       } else {
         toast.error(data?.error || "Failed to place order.");
       }
@@ -161,7 +182,7 @@ function CheckoutContent() {
             <div className="bg-white rounded-[2rem] p-6 border border-gray-50 shadow-soft">
               <h3 className="text-xl font-bold font-serif text-[#1A142E] mb-6">Payment Method</h3>
               <div className="space-y-4">
-                <label className={`flex items-center gap-4 p-4 rounded-xl border \${paymentMethod === 'cod' ? 'border-[#8B7BB4] bg-[#8B7BB4]/5' : 'border-gray-100'} cursor-pointer transition-colors`}>
+                <label className={`flex items-center gap-4 p-4 rounded-xl border ${paymentMethod === 'cod' ? 'border-[#8B7BB4] bg-[#8B7BB4]/5' : 'border-gray-100'} cursor-pointer transition-colors`}>
                   <input 
                     type="radio" 
                     name="payment" 
@@ -172,7 +193,7 @@ function CheckoutContent() {
                   />
                   <span className="font-bold text-sm text-[#1A142E]">Cash on Delivery</span>
                 </label>
-                <label className={`flex items-center gap-4 p-4 rounded-xl border \${paymentMethod === 'online' ? 'border-[#8B7BB4] bg-[#8B7BB4]/5' : 'border-gray-100'} cursor-pointer transition-colors`}>
+                <label className={`flex items-center gap-4 p-4 rounded-xl border ${paymentMethod === 'online' ? 'border-[#8B7BB4] bg-[#8B7BB4]/5' : 'border-gray-100'} cursor-pointer transition-colors`}>
                   <input 
                     type="radio" 
                     name="payment" 
@@ -180,9 +201,11 @@ function CheckoutContent() {
                     checked={paymentMethod === 'online'}
                     onChange={() => setPaymentMethod('online')}
                     className="text-[#8B7BB4] focus:ring-[#8B7BB4]"
-                    disabled
                   />
-                  <span className="font-bold text-sm text-gray-400">Credit Card (Coming Soon)</span>
+                  <div className="flex-1">
+                    <p className="font-bold text-sm text-[#1A142E]">Online Payment</p>
+                    <p className="text-[10px] text-gray-400">Credit Card / Debit Card via Stripe</p>
+                  </div>
                 </label>
               </div>
             </div>
@@ -226,6 +249,24 @@ function CheckoutContent() {
 
         </div>
       </main>
+
+      {/* Stripe Payment Modal */}
+      {showStripeModal && clientSecret && pendingOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+           <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripePaymentForm 
+                clientSecret={clientSecret}
+                orderNumber={pendingOrder.order_number}
+                onSuccess={() => router.push('/profile')}
+                onCancel={() => {
+                  setShowStripeModal(false);
+                  toast.info("Payment cancelled. You can complete it later from your profile.");
+                  router.push('/profile');
+                }}
+              />
+           </Elements>
+        </div>
+      )}
 
     </div>
   );
